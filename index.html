@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHATNLP - 1 | Cinematic AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100;400;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* --- CUSTOM PRESETS --- */
+        :root {
+            --neon-blue: #00f3ff;
+            --neon-purple: #bc13fe;
+            --dark-bg: #050505;
+            --glass: rgba(20, 20, 20, 0.6);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: #e0e0e0;
+            font-family: 'JetBrains Mono', monospace;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* --- CRT SCANLINE EFFECT --- */
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0),
+                rgba(255,255,255,0) 50%,
+                rgba(0,0,0,0.1) 50%,
+                rgba(0,0,0,0.1)
+            );
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 50;
+        }
+        
+        .glow-text {
+            text-shadow: 0 0 10px rgba(0, 243, 255, 0.5), 0 0 20px rgba(0, 243, 255, 0.3);
+        }
+
+        /* --- INTRO ANIMATIONS --- */
+        #intro-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            transition: opacity 1s ease-in-out;
+        }
+
+        .title-glitch {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3rem;
+            letter-spacing: 0.5em;
+            color: white;
+            position: relative;
+        }
+
+        .title-glitch::before, .title-glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+        }
+
+        .title-glitch::before {
+            color: var(--neon-blue);
+            animation: glitch-anim-1 2s infinite linear alternate-reverse;
+        }
+        
+        .title-glitch::after {
+            color: var(--neon-purple);
+            animation: glitch-anim-2 3s infinite linear alternate-reverse;
+        }
+
+        @keyframes glitch-anim-1 {
+            0% { clip-path: inset(20% 0 80% 0); transform: translate(-2px, 0); }
+            20% { clip-path: inset(60% 0 10% 0); transform: translate(2px, 0); }
+            40% { clip-path: inset(40% 0 50% 0); transform: translate(-2px, 0); }
+            60% { clip-path: inset(80% 0 5% 0); transform: translate(2px, 0); }
+            80% { clip-path: inset(10% 0 60% 0); transform: translate(-2px, 0); }
+            100% { clip-path: inset(30% 0 30% 0); transform: translate(2px, 0); }
+        }
+
+        @keyframes glitch-anim-2 {
+            0% { clip-path: inset(10% 0 60% 0); transform: translate(2px, 0); }
+            20% { clip-path: inset(30% 0 20% 0); transform: translate(-2px, 0); }
+            40% { clip-path: inset(70% 0 10% 0); transform: translate(2px, 0); }
+            60% { clip-path: inset(20% 0 50% 0); transform: translate(-2px, 0); }
+            80% { clip-path: inset(50% 0 30% 0); transform: translate(2px, 0); }
+            100% { clip-path: inset(0% 0 80% 0); transform: translate(-2px, 0); }
+        }
+
+        .loader-line {
+            width: 0;
+            height: 2px;
+            background: var(--neon-blue);
+            margin-top: 20px;
+            box-shadow: 0 0 10px var(--neon-blue);
+            transition: width 2s ease-in-out;
+        }
+
+        /* --- MAIN UI --- */
+        #main-interface {
+            opacity: 0;
+            transition: opacity 1.5s ease;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #000; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #333; 
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--neon-blue); 
+        }
+
+        /* Message Styling */
+        .msg-container {
+            margin-bottom: 1.5rem;
+            opacity: 0;
+            transform: translateY(10px);
+            animation: fadeInMsg 0.4s forwards;
+            border-left: 2px solid transparent;
+            padding-left: 1rem;
+        }
+
+        @keyframes fadeInMsg {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .user-msg {
+            border-left-color: var(--neon-purple);
+        }
+        .bot-msg {
+            border-left-color: var(--neon-blue);
+        }
+
+        .actor-name {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.25rem;
+            opacity: 0.7;
+        }
+
+        .dialogue-text {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            max-width: 90%;
+        }
+
+        .cursor-blink {
+            animation: blink 1s step-end infinite;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        /* Input Area */
+        .input-area {
+            background: rgba(10, 10, 10, 0.95);
+            border-top: 1px solid #333;
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.8);
+        }
+        
+        input:focus {
+            outline: none;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- VISUAL FX -->
+    <div class="scanlines"></div>
+
+    <!-- INTRO SEQUENCE (Matches User Image) -->
+    <div id="intro-screen">
+        <div style="width: 200px; height: 1px; background: #333; margin-bottom: 20px;"></div>
+        <h1 class="title-glitch" id="intro-title" data-text="CHATNLP &nbsp; - &nbsp; 1">CHATNLP &nbsp; - &nbsp; 1</h1>
+        <div class="loader-line" id="loader"></div>
+        <p id="boot-text" class="mt-4 text-xs text-gray-500 font-mono opacity-0">INITIALIZING CORE SYSTEMS...</p>
+    </div>
+
+    <!-- MAIN UI -->
+    <div id="main-interface" class="relative hidden">
+        
+        <!-- HEADER / HUD -->
+        <header class="p-4 border-b border-gray-800 flex justify-between items-end bg-black/50 backdrop-blur-sm z-10">
+            <div>
+                <h2 class="text-xl font-bold font-['Orbitron'] tracking-widest text-white">CHATNLP <span class="text-cyan-400">- 1</span></h2>
+                <div class="flex items-center gap-2 mt-1">
+                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                    <span class="text-[10px] text-gray-400 tracking-wider">SYSTEM ONLINE // DIALOGUE_MODE</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- CHAT AREA (Script Style) -->
+        <main id="chat-feed" class="flex-1 overflow-y-auto p-6 sm:p-10 relative">
+            
+            <!-- Intro Message -->
+            <div class="msg-container bot-msg">
+                <div class="actor-name text-cyan-400">System</div>
+                <div class="dialogue-text text-gray-300">
+                    <span class="opacity-50 text-sm">[CONNECTION ESTABLISHED]</span><br>
+                    Welcome to ChatNLP-1. I am designed for casual conversation and movie references. Don't ask me about physics; ask me about the Matrix.
+                </div>
+            </div>
+
+        </main>
+
+        <!-- INPUT AREA -->
+        <div class="input-area p-4 sm:p-6">
+            <form id="chat-form" class="flex items-center gap-4 max-w-5xl mx-auto">
+                <span class="text-cyan-500 font-bold">></span>
+                <input 
+                    type="text" 
+                    id="user-input" 
+                    class="flex-1 bg-transparent text-white font-mono text-lg placeholder-gray-700"
+                    placeholder="Enter dialogue..." 
+                    autocomplete="off"
+                >
+                <button type="submit" class="text-xs uppercase tracking-widest text-gray-500 hover:text-white transition-colors">
+                    Send_Cmd
+                </button>
+            </form>
+        </div>
+
+    </div>
+
+    <script>
+        /* --- CONFIGURATION --- */
+        // DATA REMOVED: Ready for your ChatNLP-1 Model Integration
+        
+        /* --- DOM ELEMENTS --- */
+        const introScreen = document.getElementById('intro-screen');
+        const mainInterface = document.getElementById('main-interface');
+        const loader = document.getElementById('loader');
+        const bootText = document.getElementById('boot-text');
+        const chatFeed = document.getElementById('chat-feed');
+        const chatForm = document.getElementById('chat-form');
+        const userInput = document.getElementById('user-input');
+
+        /* --- INTRO SEQUENCE --- */
+        window.addEventListener('load', () => {
+            // Animate loader
+            setTimeout(() => {
+                loader.style.width = '200px';
+                bootText.style.opacity = '1';
+                bootText.innerHTML = "LOADING_ASSETS...";
+            }, 500);
+
+            setTimeout(() => {
+                bootText.innerHTML = "MOUNTING_DRIVES...";
+            }, 1500);
+
+            setTimeout(() => {
+                bootText.innerHTML = "SYSTEM_READY";
+            }, 2500);
+
+            setTimeout(() => {
+                // Transition out
+                introScreen.style.opacity = '0';
+                setTimeout(() => {
+                    introScreen.style.display = 'none';
+                    mainInterface.classList.remove('hidden');
+                    // Trigger fade in
+                    setTimeout(() => {
+                        mainInterface.style.opacity = '1';
+                        userInput.focus();
+                    }, 50);
+                }, 1000);
+            }, 3000);
+        });
+
+        /* --- CHAT LOGIC --- */
+        chatForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            // 1. Add User Message to UI
+            addMessage(text, 'user');
+            userInput.value = '';
+
+            // ---------------------------------------------------------
+            // TODO: INTEGRATE YOUR CHATNLP-1 MODEL HERE
+            // ---------------------------------------------------------
+            // Example Integration:
+            // 
+            // fetch('YOUR_API_ENDPOINT', {
+            //     method: 'POST',
+            //     headers: { 'Content-Type': 'application/json' },
+            //     body: JSON.stringify({ message: text })
+            // })
+            // .then(response => response.json())
+            // .then(data => {
+            //     addMessage(data.reply, 'bot'); 
+            // });
+            // ---------------------------------------------------------
+            
+            console.log("User input received:", text);
+        });
+
+        function addMessage(text, sender) {
+            const div = document.createElement('div');
+            const isBot = sender === 'bot';
+            
+            div.className = `msg-container ${isBot ? 'bot-msg' : 'user-msg'}`;
+            
+            const actorColor = isBot ? 'text-cyan-400' : 'text-purple-400';
+            const actorName = isBot ? 'CHATNLP-1' : 'USER_01';
+            
+            div.innerHTML = `
+                <div class="actor-name ${actorColor}">${actorName}</div>
+                <div class="dialogue-text text-gray-300">${text}</div>
+            `;
+            
+            chatFeed.appendChild(div);
+            scrollToBottom();
+        }
+
+        function scrollToBottom() {
+            chatFeed.scrollTop = chatFeed.scrollHeight;
+        }
+
+        // generateResponse function removed for custom integration
+    </script>
+</body>
+</html>
