@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asknue | Model Library</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --neon-white: #ffffff;
+            --neon-dim: #444444;
+            --bg-dark: #050505;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, .brand-font {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        /* --- Startup Animation Video Overlay --- */
+        #intro-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: black;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            pointer-events: all;
+            transition: opacity 0.8s ease-out;
+        }
+
+        #startup-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Fills screen completely */
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        #skip-btn {
+            position: absolute;
+            bottom: 40px;
+            z-index: 10;
+            padding: 10px 24px;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 14px;
+            opacity: 0;
+            animation: fadeIn 0.5s ease-out 2s forwards; /* Appears after 2 seconds */
+            transition: background 0.3s;
+        }
+        #skip-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        @keyframes fadeIn { to { opacity: 1; } }
+
+        /* --- Main Content Reveal Animation --- */
+        #main-content {
+            opacity: 0;
+            filter: blur(10px);
+            transform: scale(0.98);
+            transition: opacity 1s ease-out, filter 1s ease-out, transform 1s ease-out;
+        }
+
+        #main-content.visible {
+            opacity: 1;
+            filter: blur(0);
+            transform: scale(1);
+        }
+
+        /* --- Utilities --- */
+        .glass-panel {
+            background: rgba(20, 20, 20, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .hover-glow {
+            transition: all 0.3s ease;
+        }
+        .hover-glow:hover {
+            box-shadow: 0 0 25px rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .text-gradient {
+            background: linear-gradient(to right, #ffffff, #888888);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a0a0a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        /* Terminal Style for Docs */
+        .terminal {
+            background: #0a0a0a;
+            border: 1px solid #333;
+            font-family: 'Space Mono', monospace;
+            position: relative;
+        }
+        .terminal-header {
+            background: #1a1a1a;
+            padding: 8px 12px;
+            display: flex;
+            gap: 6px;
+            border-bottom: 1px solid #333;
+        }
+        .dot { width: 10px; height: 10px; border-radius: 50%; }
+        .red { background: #ff5f56; }
+        .yellow { background: #ffbd2e; }
+        .green { background: #27c93f; }
+    </style>
+</head>
+<body class="antialiased selection:bg-white selection:text-black">
+
+    <!-- Startup Animation Overlay -->
+    <div id="intro-overlay">
+        <video id="startup-video" autoplay muted playsinline>
+            <source src="asknue_final_animations.mp4" type="video/mp4">
+            <!-- Fallback text if video fails -->
+            <p>Loading Asknue...</p>
+        </video>
+        <!-- Added a button to ensure user can enter if video gets stuck -->
+        <button id="skip-btn" onclick="endAnimation()">Enter Asknue</button>
+    </div>
+
+    <!-- Main Content Wrapper -->
+    <div id="main-content" class="min-h-screen flex flex-col relative">
+        
+        <!-- Navigation -->
+        <nav class="fixed w-full z-50 glass-panel border-b-0 top-0">
+            <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+                <a href="#" class="flex items-center gap-3 group">
+                    <img src="image_58c5dd.png" alt="Asknue Logo" class="h-10 w-10 object-contain invert-0 group-hover:scale-105 transition-transform duration-300">
+                    <span class="brand-font text-2xl font-bold tracking-tighter">Asknue</span>
+                </a>
+                
+                <div class="hidden md:flex items-center gap-8 text-sm font-medium text-gray-400">
+                    <a href="#models" class="hover:text-white transition-colors">Models</a>
+                    <a href="#documentation" class="hover:text-white transition-colors">Documentation</a>
+                    <a href="#about" class="hover:text-white transition-colors">About</a>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <button class="md:hidden text-white">
+                    <i data-lucide="menu"></i>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Hero Section -->
+        <header class="pt-40 pb-20 px-6 relative overflow-hidden">
+            <!-- Background Glow -->
+            <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-white opacity-[0.03] blur-[120px] rounded-full pointer-events-none"></div>
+
+            <div class="max-w-7xl mx-auto text-center relative z-10">
+                <h1 class="text-5xl md:text-8xl font-bold tracking-tighter mb-6">
+                    <span class="block">The Future of</span>
+                    <span class="text-gradient">Dialogue Models</span>
+                </h1>
+                
+                <p class="text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed font-light">
+                    Welcome to the Asknue model library. Access specialized AI models designed for seamless, human-like interaction.
+                </p>
+
+                <div class="flex justify-center gap-4">
+                    <a href="#models" class="px-8 py-3 bg-white text-black rounded-lg font-bold hover:scale-105 transition-transform">Explore Models</a>
+                    <a href="#documentation" class="px-8 py-3 glass-panel rounded-lg font-medium hover:bg-white/10 transition-colors">Read Docs</a>
+                </div>
+            </div>
+        </header>
+
+        <!-- Models Section -->
+        <section id="models" class="py-20 px-6 bg-[#080808]">
+            <div class="max-w-7xl mx-auto">
+                <div class="flex items-end justify-between mb-12 border-b border-gray-800 pb-4">
+                    <h2 class="text-3xl font-bold">Model Library</h2>
+                    <span class="text-gray-500 text-sm font-mono">1 Active Model</span>
+                </div>
+
+                <!-- Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    
+                    <!-- ChatNLP 1 Card -->
+                    <div class="glass-panel p-6 rounded-xl hover-glow group relative overflow-hidden flex flex-col justify-between min-h-[280px]">
+                        <div class="absolute top-0 right-0 p-4 opacity-50">
+                            <i data-lucide="message-square" class="w-12 h-12 text-gray-600 group-hover:text-white transition-colors"></i>
+                        </div>
+                        
+                        <div>
+                            <h3 class="text-2xl font-bold mb-2 mt-8">ChatNLP 1</h3>
+                            <p class="text-gray-400 text-sm mb-6 leading-relaxed">
+                                A lightweight conversational engine optimized for natural dialogue flow and emotional nuance. 
+                            </p>
+                        </div>
+                        
+                        <div class="flex items-center justify-between mt-auto">
+                            <button class="flex items-center gap-2 text-sm font-semibold hover:text-gray-300 transition-colors">
+                                View Specs <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                            </button>
+                            <button class="bg-white text-black px-6 py-2 rounded-md text-sm font-bold hover:bg-gray-200 transition-colors">
+                                Launch
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Placeholder for Future Models -->
+                    <div class="border border-dashed border-gray-800 rounded-xl p-6 flex flex-col items-center justify-center text-center opacity-50 hover:opacity-100 transition-opacity min-h-[280px]">
+                        <i data-lucide="plus" class="w-8 h-8 text-gray-600 mb-4"></i>
+                        <h3 class="text-lg font-medium">Coming Soon</h3>
+                        <p class="text-sm text-gray-500">Scientific & Analytical Models</p>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- Documentation / Terminal Section -->
+        <section id="documentation" class="py-24 px-6 relative">
+            <div class="max-w-4xl mx-auto">
+                <h2 class="text-3xl font-bold mb-8 text-center">Documentation</h2>
+                
+                <div class="terminal rounded-lg shadow-2xl overflow-hidden hover:shadow-white/5 transition-shadow duration-500">
+                    <div class="terminal-header">
+                        <div class="dot red"></div>
+                        <div class="dot yellow"></div>
+                        <div class="dot green"></div>
+                        <div class="ml-4 text-xs text-gray-500 font-mono">docs/chatnlp-1/limitations.txt</div>
+                    </div>
+                    <div class="p-8 text-gray-300 font-mono text-sm md:text-base leading-7">
+                        <p class="mb-4"><span class="text-green-500">user@asknue:~$</span> cat description.txt</p>
+                        <p class="mb-6 text-white font-bold">Model: ChatNLP 1</p>
+                        
+                        <div class="bg-white/5 border-l-2 border-yellow-500 p-4 mb-6">
+                            <strong class="text-yellow-500 block mb-2">IMPORTANT NOTICE:</strong>
+                            <p class="text-gray-400">
+                                ChatNLP 1 is exclusively trained on <strong>conversational dialogue datasets</strong>. It is optimized for human interaction, roleplay, and general chat.
+                            </p>
+                        </div>
+
+                        <p class="mb-2 text-gray-400">Capabilities:</p>
+                        <ul class="list-disc pl-5 mb-6 text-gray-500 space-y-1">
+                            <li>Natural language understanding</li>
+                            <li>Context retention in conversation</li>
+                            <li>Empathetic response generation</li>
+                        </ul>
+
+                        <p class="mb-2 text-gray-400">Limitations:</p>
+                        <p class="text-red-400/80 mb-6">
+                            >> ERROR: Scientific computation module not found.<br>
+                            >> ERROR: Advanced data analysis not supported.
+                        </p>
+                        <p class="text-gray-500 italic">
+                            * Please note: This model cannot perform scientific calculations, code generation for complex algorithms, or heavy data processing. Future updates (v2.0+) will address these capabilities.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- About / Developer Section -->
+        <section id="about" class="py-24 px-6 bg-[#080808]">
+            <div class="max-w-5xl mx-auto">
+                <div class="glass-panel rounded-2xl p-8 md:p-12 flex flex-col md:flex-row items-center gap-10">
+                    
+                    <!-- Developer Image -->
+                    <div class="relative group shrink-0">
+                        <div class="absolute inset-0 bg-white rounded-full blur-xl opacity-20 group-hover:opacity-40 transition-opacity"></div>
+                        <img src="image_58c5d7.png" alt="Developer" class="relative w-48 h-48 md:w-56 md:h-56 object-cover rounded-full border-2 border-gray-800 grayscale group-hover:grayscale-0 transition-all duration-500">
+                    </div>
+
+                    <div class="text-center md:text-left">
+                        <h2 class="text-3xl font-bold mb-4">Behind Asknue</h2>
+                        <p class="text-gray-400 mb-6 leading-relaxed">
+                            Asknue is a passion project born from the idea that knowledge is a dialogue. While <strong>ChatNLP 1</strong> begins our journey with pure conversation, I am actively developing a suite of models to tackle scientific reasoning and complex problem-solving.
+                        </p>
+                        <p class="text-gray-400 mb-8">
+                            My goal is to create a library where users can find the exact tool for their intellectual needs.
+                        </p>
+                        
+                        <div class="flex flex-wrap gap-4 justify-center md:justify-start">
+                            <div class="px-4 py-2 border border-gray-700 rounded-full text-xs font-mono text-gray-400">Next: ScienceNLP</div>
+                            <div class="px-4 py-2 border border-gray-700 rounded-full text-xs font-mono text-gray-400">Next: VisionChat</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="py-10 border-t border-white/10 text-center">
+            <div class="flex items-center justify-center gap-2 mb-4 opacity-50">
+                 <img src="image_58c5dd.png" alt="Asknue Logo" class="h-6 w-6 invert-0">
+                 <span class="font-bold">Asknue</span>
+            </div>
+            <p class="text-gray-600 text-sm">&copy; 2025 Asknue. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // Handle Video Animation
+        const overlay = document.getElementById('intro-overlay');
+        const video = document.getElementById('startup-video');
+        const mainContent = document.getElementById('main-content');
+
+        function endAnimation() {
+            // Check if already ended to prevent double triggers
+            if(overlay.style.opacity === '0') return;
+
+            // Fade out overlay
+            overlay.style.opacity = '0';
+            
+            // Disable pointer events to allow clicking through immediately
+            overlay.style.pointerEvents = 'none';
+
+            // Reveal main content
+            mainContent.classList.add('visible');
+
+            // Remove overlay from DOM after transition
+            setTimeout(() => {
+                if(overlay.parentNode) {
+                    overlay.parentNode.removeChild(overlay);
+                }
+            }, 800);
+        }
+
+        // Setup Video Listeners
+        if (video) {
+            // Normal end
+            video.addEventListener('ended', endAnimation);
+            
+            // Error handling
+            video.addEventListener('error', endAnimation);
+            
+            // Safety fallback: Increased to 15s to allow full video play, 
+            // but rely mostly on 'ended' event or user click.
+            setTimeout(endAnimation, 15000); 
+        } else {
+            // No video found? Show content immediately
+            endAnimation();
+        }
+    </script>
+</body>
+</html>
